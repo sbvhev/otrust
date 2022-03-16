@@ -2,7 +2,6 @@
 import React, { useCallback, useRef } from 'react';
 import styled from 'styled-components';
 import { BigNumber } from 'bignumber.js';
-import { useWeb3React } from '@web3-react/core';
 import _ from 'lodash';
 import { useOnomyEth } from '@onomy/react-eth';
 
@@ -12,7 +11,6 @@ import ApproveTokensModal from 'components/Modals/components/ApproveTokensModal'
 import RequestFailedModal from 'components/Modals/components/RequestFailedModal';
 import TransactionCompletedModal from 'components/Modals/components/TransactionCompletedModal';
 import TransactionFailedModal from 'components/Modals/components/TransactionFailedModal';
-import { BondingCont, NOMCont } from 'context/chain/contracts';
 import { useExchange, useUpdateExchange } from 'context/exchange/ExchangeContext';
 import {
   ExchangeItem,
@@ -39,12 +37,8 @@ const AvailableDiv = styled.strong`
 `;
 
 export default function ExchangeQuote({ strength }) {
-  const { strongBalance, weakBalance, NOMallowance } = useOnomyEth();
+  const { strongBalance, weakBalance, NOMallowance, bondingCurve } = useOnomyEth();
   const { handleModal } = useModal();
-  const { library } = useWeb3React();
-
-  const bondContract = BondingCont(library);
-  const NOMcontract = NOMCont(library);
 
   const { askAmount, bidAmount, approveAmount, bidDenom, input, output, strong, weak } =
     useExchange();
@@ -61,12 +55,12 @@ export default function ExchangeQuote({ strength }) {
       switch (textStrength) {
         case 'strong':
           // console.log('Strong: ', bidAmountUpdate.toFixed(0));
-          askAmountUpdate = await bondContract.buyQuoteETH(bidAmountUpdate.toFixed(0));
+          askAmountUpdate = await bondingCurve.buyQuoteETH(bidAmountUpdate);
           // console.log('Pull Strong Ask Amount', askAmountUpdate);
           break;
 
         case 'weak':
-          askAmountUpdate = await bondContract.sellQuoteNOM(bidAmountUpdate.toFixed(0));
+          askAmountUpdate = await bondingCurve.sellQuoteNOM(bidAmountUpdate);
           // console.log('Pull Weak Ask Amount', askAmountUpdate);
           break;
 
@@ -76,7 +70,7 @@ export default function ExchangeQuote({ strength }) {
       }
       return new BigNumber(askAmountUpdate.toString());
     },
-    [bondContract]
+    [bondingCurve]
   );
 
   const submitTrans = useCallback(
@@ -87,17 +81,11 @@ export default function ExchangeQuote({ strength }) {
         if (!approveAmount) return;
 
         try {
-          const tx = await NOMcontract.increaseAllowance(
-            bondContract.address,
-            approveRef.current.toFixed(0),
-            {
-              gasPrice: gasPrice.toFixed(0),
-            }
+          const [, tx] = await bondingCurve.bNomIncreaseBondAllowance(
+            new BigNumber(approveRef.current),
+            gasPrice
           );
-
-          tx.wait().then(() => {
-            handleModal(<TransactionCompletedModal isApproving tx={tx} />);
-          });
+          handleModal(<TransactionCompletedModal isApproving tx={tx} />);
         } catch (e) {
           // eslint-disable-next-line no-console
           console.error(e);
@@ -107,52 +95,15 @@ export default function ExchangeQuote({ strength }) {
         if (!bidAmount || !askAmount) return;
         try {
           let tx;
-          let gasFee;
 
           switch (bidDenom) {
             case 'strong':
               // Preparing for many tokens / coins
               switch (strong) {
                 case 'ETH':
-                  // eslint-disable-next-line no-case-declarations
-                  const gasFeeRaw = await bondContract.estimateGas.buyNOM(
-                    askAmount.toFixed(0),
-                    slippage.toFixed(0),
-                    {
-                      value: bidAmount.toFixed(0),
-                    }
-                  );
-
-                  gasFee = new BigNumber(gasFeeRaw.toString());
-
-                  // eslint-disable-next-line no-case-declarations
-                  const gas = gasFee.times(gasPrice);
-                  if (bidAmount.lt(gas)) {
-                    handleModal(
-                      <TransactionFailedModal error={NOTIFICATION_MESSAGES.error.lowBid} />
-                    );
-                    return;
-                  }
-
-                  // eslint-disable-next-line no-case-declarations
-                  const bidAmountUpdate = bidAmount.minus(gasFee.times(gasPrice));
-                  // eslint-disable-next-line no-case-declarations
-                  const askAmountUpdateRaw = await bondContract.buyQuoteETH(
-                    bidAmountUpdate.toFixed(0)
-                  );
-                  // eslint-disable-next-line no-case-declarations
-                  const askAmountUpdate = new BigNumber(askAmountUpdateRaw.toString());
-
-                  tx = await bondContract.buyNOM(askAmountUpdate.toFixed(0), slippage.toFixed(0), {
-                    value: bidAmountUpdate.toFixed(0),
-                    gasPrice: gasPrice.toFixed(0),
-                    gasLimit: gasFee.toFixed(0),
-                  });
-
-                  tx.wait().then(() => {
-                    handleModal(<TransactionCompletedModal tx={tx} />);
-                  });
-
+                  // eslint-disable-next-line prefer-destructuring
+                  tx = (await bondingCurve.buyNOM(bidAmount, askAmount, slippage, gasPrice))[1];
+                  handleModal(<TransactionCompletedModal tx={tx} />);
                   break;
                 default: {
                   break;
@@ -163,18 +114,9 @@ export default function ExchangeQuote({ strength }) {
             case 'weak':
               switch (weak) {
                 case 'bNOM':
-                  tx = await bondContract.sellNOM(
-                    bidAmount.toFixed(0),
-                    askAmount.toFixed(0),
-                    slippage.toFixed(0),
-                    {
-                      gasPrice: gasPrice.toFixed(0),
-                    }
-                  );
-
-                  tx.wait().then(() => {
-                    handleModal(<TransactionCompletedModal tx={tx} />);
-                  });
+                  // eslint-disable-next-line prefer-destructuring
+                  tx = (await bondingCurve.sellNOM(bidAmount, askAmount, slippage, gasPrice))[1];
+                  handleModal(<TransactionCompletedModal tx={tx} />);
                   break;
                 default: {
                   break;
@@ -186,24 +128,17 @@ export default function ExchangeQuote({ strength }) {
               break;
           }
         } catch (e) {
-          // eslint-disable-next-line no-console
-          console.error(e.code, e.message.message);
-          // alert(e.message)
-          handleModal(<TransactionFailedModal error={`${e.code}\n${e.message.slice(0, 80)}...`} />);
+          let error;
+          if (NOTIFICATION_MESSAGES.error[e.message]) {
+            error = NOTIFICATION_MESSAGES.error[e.message];
+          } else {
+            error = `${e.code}\n${e.message.slice(0, 80)}...`;
+          }
+          handleModal(<TransactionFailedModal error={error} />);
         }
       }
     },
-    [
-      askAmount,
-      bidAmount,
-      approveAmount,
-      bidDenom,
-      NOMcontract,
-      bondContract,
-      handleModal,
-      strong,
-      weak,
-    ]
+    [askAmount, bidAmount, approveAmount, bidDenom, handleModal, strong, weak, bondingCurve]
   );
 
   const onConfirmApprove = () => {
