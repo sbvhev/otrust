@@ -55,12 +55,12 @@ export default function ExchangeQuote({ strength }) {
       switch (textStrength) {
         case 'strong':
           // console.log('Strong: ', bidAmountUpdate.toFixed(0));
-          askAmountUpdate = await bondingCurve.buyQuoteETH(bidAmountUpdate);
+          askAmountUpdate = await bondingCurve.bondBuyQuoteETH(bidAmountUpdate);
           // console.log('Pull Strong Ask Amount', askAmountUpdate);
           break;
 
         case 'weak':
-          askAmountUpdate = await bondingCurve.sellQuoteNOM(bidAmountUpdate);
+          askAmountUpdate = await bondingCurve.bondSellQuoteNOM(bidAmountUpdate);
           // console.log('Pull Weak Ask Amount', askAmountUpdate);
           break;
 
@@ -102,7 +102,7 @@ export default function ExchangeQuote({ strength }) {
               switch (strong) {
                 case 'ETH':
                   // eslint-disable-next-line prefer-destructuring
-                  tx = (await bondingCurve.buyNOM(bidAmount, askAmount, slippage, gasPrice))[1];
+                  tx = (await bondingCurve.bondBuyNOM(bidAmount, askAmount, slippage, gasPrice))[1];
                   handleModal(<TransactionCompletedModal tx={tx} />);
                   break;
                 default: {
@@ -110,12 +110,13 @@ export default function ExchangeQuote({ strength }) {
                 }
               }
               break;
-
             case 'weak':
               switch (weak) {
                 case 'bNOM':
                   // eslint-disable-next-line prefer-destructuring
-                  tx = (await bondingCurve.sellNOM(bidAmount, askAmount, slippage, gasPrice))[1];
+                  tx = (
+                    await bondingCurve.bondSellNOM(bidAmount, askAmount, slippage, gasPrice)
+                  )[1];
                   handleModal(<TransactionCompletedModal tx={tx} />);
                   break;
                 default: {

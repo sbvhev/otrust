@@ -14,62 +14,74 @@ export class NomBondingCurve {
     this.gravityContract = gravityContract;
   }
 
+  public async bNomAllowance(account: string, destinationAddress: string): Promise<BigNumber> {
+    return this.bNomContract.allowance(account, destinationAddress);
+  }
+
+  public async bNomBridgeAllowance(account: string) {
+    return this.bNomAllowance(account, this.gravityContract.address);
+  }
+
+  public async bNomBondAllowance(account: string) {
+    return this.bNomAllowance(account, this.bondContract.address);
+  }
+
   public async bNomIncreaseAllowance(
     destinationAddress: string,
     amountAtoms: BigNumber,
-    gasPriceAtoms: BigNumber
+    gasPriceWei: BigNumber
   ): Promise<[ContractReceipt, ContractTransaction]> {
     const tx: ContractTransaction = await this.bNomContract.increaseAllowance(
       destinationAddress,
       amountAtoms.toFixed(0),
       {
-        gasPrice: gasPriceAtoms.toFixed(0),
+        gasPrice: gasPriceWei.toFixed(0),
       }
     );
     const receipt = await tx.wait();
     return [receipt, tx];
   }
 
-  public bNomIncreaseBridgeAllowance(amountAtoms: BigNumber, gasPriceAtoms: BigNumber) {
-    return this.bNomIncreaseAllowance(this.gravityContract.address, amountAtoms, gasPriceAtoms);
+  public bNomIncreaseBridgeAllowance(amountAtoms: BigNumber, gasPriceWei: BigNumber) {
+    return this.bNomIncreaseAllowance(this.gravityContract.address, amountAtoms, gasPriceWei);
   }
 
-  public bNomIncreaseBondAllowance(amountAtoms: BigNumber, gasPriceAtoms: BigNumber) {
-    return this.bNomIncreaseAllowance(this.bondContract.address, amountAtoms, gasPriceAtoms);
+  public bNomIncreaseBondAllowance(amountAtoms: BigNumber, gasPriceWei: BigNumber) {
+    return this.bNomIncreaseAllowance(this.bondContract.address, amountAtoms, gasPriceWei);
   }
 
-  public buyQuoteETH(amountETH: BigNumber): Promise<BigNumber> {
-    return this.bondContract.buyQuoteETH(amountETH.toFixed(0));
+  public bondBuyQuoteETH(amountWei: BigNumber): Promise<BigNumber> {
+    return this.bondContract.buyQuoteETH(amountWei.toFixed(0));
   }
 
-  public sellQuoteNOM(amountNOM: BigNumber): Promise<BigNumber> {
-    return this.bondContract.sellQuoteNOM(amountNOM.toFixed(0));
+  public bondSellQuoteNOM(amountAtoms: BigNumber): Promise<BigNumber> {
+    return this.bondContract.sellQuoteNOM(amountAtoms.toFixed(0));
   }
 
-  public async buyNOM(
-    bidAmount: BigNumber,
-    askAmount: BigNumber,
-    slippage: BigNumber,
-    gasPrice: BigNumber
-  ) {
+  public async bondBuyNOM(
+    bidAmountWei: BigNumber,
+    askAmountAtoms: BigNumber,
+    slippageAtoms: BigNumber,
+    gasPriceWei: BigNumber
+  ): Promise<[ContractReceipt, ContractTransaction]> {
     const gasFeeRaw = await this.bondContract.estimateGas.buyNOM(
-      askAmount.toFixed(0),
-      slippage.toFixed(0),
+      askAmountAtoms.toFixed(0),
+      slippageAtoms.toFixed(0),
       {
-        value: bidAmount.toFixed(0),
+        value: bidAmountWei.toFixed(0),
       }
     );
 
     const gasFee = new BigNumber(gasFeeRaw.toString());
     // eslint-disable-next-line no-case-declarations
-    const gas = gasFee.times(gasPrice);
+    const gas = gasFee.times(gasPriceWei);
 
-    if (bidAmount.lt(gas)) {
+    if (bidAmountWei.lt(gas)) {
       throw new Error('lowBid');
     }
 
     // eslint-disable-next-line no-case-declarations
-    const bidAmountUpdate = bidAmount.minus(gasFee.times(gasPrice));
+    const bidAmountUpdate = bidAmountWei.minus(gasFee.times(gasPriceWei));
     // eslint-disable-next-line no-case-declarations
     const askAmountUpdateRaw = await this.bondContract.buyQuoteETH(bidAmountUpdate.toFixed(0));
     // eslint-disable-next-line no-case-declarations
@@ -77,10 +89,10 @@ export class NomBondingCurve {
 
     const tx: ContractTransaction = await this.bondContract.buyNOM(
       askAmountUpdate.toFixed(0),
-      slippage.toFixed(0),
+      slippageAtoms.toFixed(0),
       {
         value: bidAmountUpdate.toFixed(0),
-        gasPrice: gasPrice.toFixed(0),
+        gasPrice: gasPriceWei.toFixed(0),
         gasLimit: gasFee.toFixed(0),
       }
     );
@@ -89,21 +101,50 @@ export class NomBondingCurve {
     return [receipt, tx];
   }
 
-  public async sellNOM(
-    bidAmount: BigNumber,
-    askAmount: BigNumber,
-    slippage: BigNumber,
-    gasPrice: BigNumber
-  ) {
+  public async bondSellNOM(
+    bidAmountWei: BigNumber,
+    askAmountAtoms: BigNumber,
+    slippageAtoms: BigNumber,
+    gasPriceWei: BigNumber
+  ): Promise<[ContractReceipt, ContractTransaction]> {
     const tx = await this.bondContract.sellNOM(
-      bidAmount.toFixed(0),
-      askAmount.toFixed(0),
-      slippage.toFixed(0),
+      bidAmountWei.toFixed(0),
+      askAmountAtoms.toFixed(0),
+      slippageAtoms.toFixed(0),
       {
-        gasPrice: gasPrice.toFixed(0),
+        gasPrice: gasPriceWei.toFixed(0),
       }
     );
     const receipt = await tx.wait();
     return [receipt, tx];
+  }
+
+  public async bridgeSendToCosmos(
+    tokenContract: string,
+    destinationAddress: string,
+    amountAtoms: BigNumber,
+    gasPriceWei: BigNumber
+  ): Promise<[ContractReceipt, ContractTransaction]> {
+    const tx = await this.gravityContract.sendToCosmos(
+      tokenContract,
+      destinationAddress,
+      amountAtoms,
+      { gasPrice: gasPriceWei.toFixed(0) }
+    );
+    const receipt = await tx.wait();
+    return [receipt, tx];
+  }
+
+  public async bridgeBNOMSendToCosmos(
+    destinationAddress: string,
+    amountAtoms: BigNumber,
+    gasPriceWei: BigNumber
+  ) {
+    return this.bridgeSendToCosmos(
+      this.bNomContract.address,
+      destinationAddress,
+      amountAtoms,
+      gasPriceWei
+    );
   }
 }
