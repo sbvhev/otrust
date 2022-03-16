@@ -217,7 +217,29 @@ export default function ApproveTokensBridgeModal({
     [bondingCurve, approveAmountInputValue, gasPrice]
   );
 
-  const amountDisplay = parseFloat(amountValue || '0').toFixed(6);
+  let infoMessage;
+  const amountDisplay = parseFloat(amountValue || '0');
+
+  if (allowanceAmountGravity?.gt(0)) {
+    const formattedAllowanceAmountGravity = new BigNumber(allowanceAmountGravity.toString())
+      .shiftedBy(-18)
+      .toString(10);
+    infoMessage = (
+      <Message>
+        You have approved bridging of up to <strong>{formattedAllowanceAmountGravity} bNOM</strong>.
+        To bridge <strong>{amountDisplay} bNOM</strong>, you must approve at least an additional{' '}
+        <strong>{approveAmountInputValue} bNOM</strong>.
+      </Message>
+    );
+  } else {
+    infoMessage = (
+      <Message>
+        You must approve <strong>{amountDisplay} bNOM</strong> for bridging to the Onomy Network.
+        Your bNOM will be burned and you will receive an equivalent number of NOM tokens in your
+        Onomy Wallet. After approval, you may submit a bridge transaction!
+      </Message>
+    );
+  }
 
   return (
     <Modal.BridgeSectionWrapper>
@@ -233,12 +255,7 @@ export default function ApproveTokensBridgeModal({
       </header>
 
       <main>
-        <Message>
-          Please approve <strong>{amountDisplay} bNOM</strong> for bridging to the Onomy Network.
-          Your bNOM will be burned and you will receive an equivalent number of NOM tokens in your
-          Cosmos-based wallet. After approval, you may bridge up to the approved amount in an
-          additional transaction.
-        </Message>
+        {infoMessage}
         <ApproveTokensWrapper>
           <div>
             {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
