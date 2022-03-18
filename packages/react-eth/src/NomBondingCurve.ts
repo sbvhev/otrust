@@ -1,6 +1,11 @@
 import BigNumber from 'bignumber.js';
 import { Contract, ContractReceipt, ContractTransaction } from 'ethers';
 
+function convertBigNum(bigNum: BigNumber) {
+  // Needed due to mixed BigNumber versions
+  return new BigNumber(bigNum.toString());
+}
+
 export class NomBondingCurve {
   private bondContract: Contract;
 
@@ -15,7 +20,7 @@ export class NomBondingCurve {
   }
 
   public async bNomAllowance(account: string, destinationAddress: string): Promise<BigNumber> {
-    return this.bNomContract.allowance(account, destinationAddress);
+    return this.bNomContract.allowance(account, destinationAddress).then(convertBigNum);
   }
 
   public async bNomBridgeAllowance(account: string) {
@@ -51,11 +56,11 @@ export class NomBondingCurve {
   }
 
   public bondBuyQuoteETH(amountWei: BigNumber): Promise<BigNumber> {
-    return this.bondContract.buyQuoteETH(amountWei.toFixed(0));
+    return this.bondContract.buyQuoteETH(amountWei.toFixed(0)).then(convertBigNum);
   }
 
   public bondSellQuoteNOM(amountAtoms: BigNumber): Promise<BigNumber> {
-    return this.bondContract.sellQuoteNOM(amountAtoms.toFixed(0));
+    return this.bondContract.sellQuoteNOM(amountAtoms.toFixed(0)).then(convertBigNum);
   }
 
   public async bondBuyNOM(
@@ -128,7 +133,7 @@ export class NomBondingCurve {
     const tx = await this.gravityContract.sendToCosmos(
       tokenContract,
       destinationAddress,
-      amountAtoms,
+      amountAtoms.toString(10),
       { gasPrice: gasPriceWei.toFixed(0) }
     );
     const receipt = await tx.wait();

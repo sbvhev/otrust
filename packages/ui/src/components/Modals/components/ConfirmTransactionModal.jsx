@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import useInterval from '@use-it/interval';
 import { BigNumber } from 'bignumber.js';
-import { useWeb3React } from '@web3-react/core';
+import { useOnomyEth } from '@onomy/react-eth';
 
 import { Close, Metamask } from 'components/Modals/Icons';
 import { Caret } from '../Icons';
@@ -123,7 +123,8 @@ export default function ConfirmTransactionModal({ isApproving, submitTrans }) {
   const [slippage, setSlippage] = useState(0);
   const [showSlippageDetails, setShowSlippageDetails] = useState(false);
   const { handleModal } = useModal();
-  const { account } = useWeb3React();
+  const { web3Context } = useOnomyEth();
+  const { account } = web3Context;
 
   const { askAmount, bidAmount, bidDenom, strong, weak, approve } = useExchange();
 

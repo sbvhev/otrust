@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { BigNumber } from 'bignumber.js';
-import { useWeb3React } from '@web3-react/core';
+import { useOnomyEth } from '@onomy/react-eth';
 
 import LoadingSpinner from 'components/UI/LoadingSpinner';
 import { Metamask } from 'components/Modals/Icons';
@@ -53,7 +53,8 @@ const WalletIcon = styled.div`
 // `;
 
 export default function PendingModal({ isApproving }) {
-  const { account } = useWeb3React();
+  const { web3Context } = useOnomyEth();
+  const { account } = web3Context;
   const { approve, bidDenom, strong, weak, bidAmount, askAmount } = useExchange();
 
   return (

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import ReactModal from 'react-modal';
 import styled from 'styled-components';
-import { useWeb3React } from '@web3-react/core';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft } from '@fortawesome/free-solid-svg-icons';
+import { useOnomyEth } from '@onomy/react-eth';
 
 import LoadingSpinner from 'components/UI/LoadingSpinner';
 import { responsive } from 'theme/constants';
@@ -181,8 +181,8 @@ const modalOverride = {
 };
 
 export default function BridgeSwapMobile({ ...props }) {
-  const { active } = useWeb3React();
-
+  const { web3Context } = useOnomyEth();
+  const { active } = web3Context;
   const { values, flags, handlers } = { ...props };
 
   const [infoModal, setInfoModal] = useState(false);

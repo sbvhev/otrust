@@ -1,6 +1,5 @@
 import React from 'react';
 import styled from 'styled-components';
-import { useWeb3React } from '@web3-react/core';
 import BigNumber from 'bignumber.js';
 import { useOnomyEth } from '@onomy/react-eth';
 
@@ -49,10 +48,8 @@ const DarkWrapper = styled.div`
 `;
 
 export default function Sidebar() {
-  // const { active, error, chainId, account, deactivate } = useWeb3React();
-  // const { blockNumber, strongBalance, weakBalance, NOMallowance } = useChain();
-  const { account, deactivate } = useWeb3React();
-  const { strongBalance, weakBalance, NOMallowance } = useOnomyEth();
+  const { strongBalance, weakBalance, NOMallowance, web3Context } = useOnomyEth();
+  const { account, deactivate } = web3Context;
   const { strong, weak } = useExchange();
 
   const handleLogout = () => {

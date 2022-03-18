@@ -1,5 +1,6 @@
 import React, { useState, useEffect, createContext, useContext, useMemo } from 'react';
 import { useWeb3React, Web3ReactProvider } from '@web3-react/core';
+import { Web3ReactContextInterface } from '@web3-react/core/dist/types';
 import { ApolloProvider, ApolloClient, InMemoryCache } from '@apollo/client';
 import { BigNumber } from 'bignumber.js';
 import { ExternalProvider, Web3Provider } from '@ethersproject/providers';
@@ -13,7 +14,17 @@ function getWeb3Library(provider: ExternalProvider) {
   return library;
 }
 
+const WEB3_CONTEXT_DEFAULT = {
+  connector: undefined,
+  library: undefined,
+  chainId: undefined,
+  account: null,
+  active: false,
+  error: undefined,
+} as Web3ReactContextInterface<any>;
+
 const DEFAULT_STATE = {
+  web3Context: WEB3_CONTEXT_DEFAULT,
   blockNumber: new BigNumber(0),
   currentETHPrice: new BigNumber(0),
   currentNOMPrice: new BigNumber(0),
@@ -37,7 +48,8 @@ function useOnomyEthState({
   bondContractAddress: string;
   gravityContractAddress: string;
 }) {
-  const { account, library } = useWeb3React();
+  const web3Context = useWeb3React();
+  const { library } = web3Context;
   const [state, setState] = useState(DEFAULT_STATE);
 
   const bondContract = useMemo(
@@ -63,6 +75,7 @@ function useOnomyEthState({
   useEffect(() => {
     // listen for changes on an Ethereum address
     async function onBlock(bNumber: number) {
+      const { account } = web3Context;
       const blockNumber = new BigNumber(bNumber);
       if (state.blockNumber === blockNumber) return;
       try {
@@ -84,6 +97,7 @@ function useOnomyEthState({
         const currentNOMPrice = new BigNumber(1).div(currentETHPrice);
 
         setState({
+          web3Context,
           blockNumber,
           currentETHPrice,
           currentNOMPrice,
@@ -103,7 +117,7 @@ function useOnomyEthState({
     return () => {
       if (library) library.removeListener('block', onBlock);
     };
-  }, [NOMContract, account, bondContract, bondContractAddress, library, state.blockNumber]);
+  }, [NOMContract, web3Context, bondContract, bondContractAddress, library, state.blockNumber]);
 
   return {
     ...state,

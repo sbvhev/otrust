@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useWeb3React } from '@web3-react/core';
 import { BigNumber } from 'bignumber.js';
 import cosmos from 'cosmos-lib';
-import { ethers } from 'ethers';
 import { useMediaQuery } from 'react-responsive';
 import { useNavigate } from 'react-router-dom';
 import { useOnomy } from '@onomy/react-client';
@@ -44,7 +42,7 @@ export default function BridgeSwapMain() {
   const [formattedWeakBalance, setFormattedWeakBalance] = useState(0);
   const [isDisabled, setIsDisabled] = useState(false);
   const [isTransactionPending, setIsTransactionPending] = useState(false);
-  const [allowanceAmountGravity, setAllowanceAmountGravity] = useState(0);
+  const [allowanceAmountGravity, setAllowanceAmountGravity] = useState(new BigNumber(0));
   const [showBridgeExchangeModal, setShowBridgeExchangeModal] = useState(true);
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [showTransactionCompleted, setShowTransactionCompleted] = useState(false);
@@ -53,8 +51,8 @@ export default function BridgeSwapMain() {
 
   const standardBrigdeBreakpoint = useMediaQuery({ minWidth: responsive.smartphoneLarge });
 
-  const { account } = useWeb3React();
-  const { weakBalance, bondingCurve } = useOnomyEth();
+  const { weakBalance, bondingCurve, web3Context } = useOnomyEth();
+  const { account } = web3Context;
 
   useEffect(() => {
     setFormattedWeakBalance(weakBalance.shiftedBy(-18));
@@ -64,10 +62,10 @@ export default function BridgeSwapMain() {
     const allowanceGravity = await bondingCurve.bNomBridgeAllowance(account);
     setAllowanceAmountGravity(allowanceGravity);
     return allowanceGravity;
-  }, [bondingCurve, account]);
+  }, [bondingCurve, account, setAllowanceAmountGravity]);
 
   useEffect(() => {
-    if (bondingCurve && account && !allowanceAmountGravity) {
+    if (bondingCurve && account && allowanceAmountGravity.eq(0)) {
       updateAllowanceAmount();
     }
   }, [bondingCurve, account, allowanceAmountGravity, updateAllowanceAmount]);
@@ -133,10 +131,7 @@ export default function BridgeSwapMain() {
         });
         return;
       }
-
-      const string18FromAmount = BigNumber(amountValue).shiftedBy(18).toString(10);
-      const amountValueAtoms = ethers.BigNumber.from(string18FromAmount);
-
+      const amountValueAtoms = new BigNumber(amountValue).shiftedBy(18);
       try {
         setIsDisabled(true);
         cosmos.address.getBytes(onomyWalletValue);

@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { useWeb3React } from '@web3-react/core';
 import { useMediaQuery } from 'react-responsive';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft } from '@fortawesome/free-solid-svg-icons';
 import { useAnomSupply, useOnomy } from '@onomy/react-client';
+import { useOnomyEth } from '@onomy/react-eth';
 
 import { Dimmer } from 'components/UI/Dimmer';
 import LoadingSpinner from 'components/UI/LoadingSpinner';
@@ -160,7 +160,8 @@ function BridgeSwapModalInfo({ closeModal }) {
 }
 
 export default function BridgeSwapModal({ ...props }) {
-  const { active, account } = useWeb3React();
+  const { web3Context } = useOnomyEth();
+  const { active, account } = web3Context;
   const { values, flags, handlers } = { ...props };
   const { hasKeplr } = useOnomy();
   const [showInfoModal, setShowInfoModal] = useState(false);
