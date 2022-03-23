@@ -11,9 +11,9 @@ import ValidatorNodeHeader from './ValidatorNodeHeader';
 import * as Modal from '../styles';
 import BackButton from './BackButton';
 import StakingModal from './StakingModal';
+import StakingTransactionFailedModal from './StakingTransactionFailedModal';
 import { BigNumberInput } from 'components/BigNumberInput';
 import { format18, parse18 } from 'utils/math';
-import { ErrorDisplay } from 'components/ErrorDisplay';
 import LoadingSpinner from 'components/UI/LoadingSpinner';
 import ValidatorDelegationSuccess from './ValidatorDelegationSuccess';
 
@@ -127,11 +127,7 @@ export default function ValidatorDelegation({
   if (!validator) return null;
 
   if (txError) {
-    return (
-      <StakingModal>
-        <ErrorDisplay error={txError} />
-      </StakingModal>
-    );
+    return <StakingTransactionFailedModal error={txError.message} />;
   }
 
   if (txPending) {

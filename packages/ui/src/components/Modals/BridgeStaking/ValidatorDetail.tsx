@@ -9,11 +9,11 @@ import ValidatorNodeHeader from './ValidatorNodeHeader';
 import * as Modal from '../styles';
 import BackButton from './BackButton';
 import StakingModal from './StakingModal';
+import StakingTransactionFailedModal from './StakingTransactionFailedModal';
 import { format18 } from 'utils/math';
 import { FormattedNumber } from 'components/FormattedNumber';
 import { EquivalentValue } from 'components/EquivalentValue';
 import { responsive } from 'theme/constants';
-import { ErrorDisplay } from 'components/ErrorDisplay';
 import LoadingSpinner from 'components/UI/LoadingSpinner';
 
 const DelegateWrapper = styled.div`
@@ -119,7 +119,8 @@ export default function ValidatorDetail({ data }: { data: ValidatorData }) {
   const [doClaim, { pending, error }] = useWithdrawRewards();
 
   if (!validator) return null;
-  if (error) return <ErrorDisplay error={error} />;
+  if (error) return <StakingTransactionFailedModal error={error.message} />;
+
   return (
     <StakingModal>
       <Modal.StakingWrapper>
