@@ -308,19 +308,11 @@ exports[`Given the ApproveTokensModal component when the component is rendered s
       <div
         class="c4"
       >
-        You have approved the Bonding Curve to sell up to 
+        You currently have not approved any bNOM for selling. To proceed, you must approve at least 
         <strong>
           0.000000 bNOM
         </strong>
-        . To sell 
-        <strong>
-          0.000000 bNOM
-        </strong>
-        , you must approve at least an additional 
-        <strong>
-          0.000000 bNOM
-        </strong>
-        .
+         for selling.
       </div>
       <div
         class="c5"

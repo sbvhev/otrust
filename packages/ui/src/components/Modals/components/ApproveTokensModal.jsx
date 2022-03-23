@@ -144,6 +144,25 @@ export default function ApproveTokensModal({ onConfirmApprove }) {
   const inputDisplay = parseFloat(input || 0).toFixed(6);
   const initApproveAmountDisplay = format18(initialApproveAmount || 0).toFixed(6);
 
+  let infoMessage;
+  if (NOMallowance.gt(0)) {
+    const nomAllowanceDisplay = format18(NOMallowance).toFixed(6);
+    infoMessage = (
+      <Message>
+        You have approved the Bonding Curve to sell up to{' '}
+        <strong>{nomAllowanceDisplay} bNOM</strong>. To sell <strong>{inputDisplay} bNOM</strong>,
+        you must approve at least an additional <strong>{initApproveAmountDisplay} bNOM</strong>.
+      </Message>
+    );
+  } else {
+    infoMessage = (
+      <Message>
+        You currently have not approved any bNOM for selling. To proceed, you must approve at least{' '}
+        <strong>{initApproveAmountDisplay} bNOM</strong> for selling.
+      </Message>
+    );
+  }
+
   return (
     <Modal.Wrapper>
       <Modal.CloseIcon onClick={() => handleModal()} data-testid="approve-tokens-modal-close-icon">
@@ -153,11 +172,7 @@ export default function ApproveTokensModal({ onConfirmApprove }) {
       <main>
         <Caption>Approve Tokens</Caption>
 
-        <Message>
-          You have approved the Bonding Curve to sell up to <strong>{inputDisplay} bNOM</strong>. To
-          sell <strong>{inputDisplay} bNOM</strong>, you must approve at least an additional{' '}
-          <strong>{initApproveAmountDisplay} bNOM</strong>.
-        </Message>
+        {infoMessage}
 
         <ApproveTokensWrapper>
           <div>
