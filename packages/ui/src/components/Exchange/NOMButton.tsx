@@ -4,7 +4,13 @@ import { useOnomyEth } from '@onomy/react-eth';
 import { useExchange } from 'context/exchange/ExchangeContext';
 import { SellBtn } from './exchangeStyles';
 
-export default function NOMButton({ onBid, onApprove }) {
+export default function NOMButton({
+  onBid,
+  onApprove,
+}: {
+  onBid?: React.MouseEventHandler<HTMLButtonElement>;
+  onApprove?: React.MouseEventHandler<HTMLButtonElement>;
+}) {
   const { weakBalance, NOMallowance } = useOnomyEth();
 
   const { bidAmount, bidDenom, input, weak } = useExchange();

@@ -26,6 +26,7 @@ import { useModal } from 'context/modal/ModalContext';
 import NOMButton from 'components/Exchange/NOMButton';
 import { format18, parse18 } from 'utils/math';
 import { NOTIFICATION_MESSAGES } from 'constants/NotificationMessages';
+import { ExchObjState, ExchStringState } from 'context/exchange/ExchangeReducer';
 
 const FlexDiv = styled.div`
   display: flex;
@@ -36,7 +37,7 @@ const AvailableDiv = styled.strong`
   text-align: right;
 `;
 
-export default function ExchangeQuote({ strength }) {
+export default function ExchangeQuote({ strength }: { strength: 'strong' | 'weak' }) {
   const { strongBalance, weakBalance, NOMallowance, bondingCurve } = useOnomyEth();
   const { handleModal } = useModal();
 
@@ -45,7 +46,7 @@ export default function ExchangeQuote({ strength }) {
   const { objDispatch, strDispatch } = useUpdateExchange();
   const isBuying = strength === 'strong';
 
-  const approveRef = useRef();
+  const approveRef = useRef<BigNumber>();
   approveRef.current = approveAmount;
 
   const getAskAmount = useCallback(
@@ -74,11 +75,11 @@ export default function ExchangeQuote({ strength }) {
   );
 
   const submitTrans = useCallback(
-    async (isApproving, slippage, gasPrice) => {
+    async (isApproving: boolean, slippage: BigNumber, gasPrice: BigNumber) => {
       handleModal(<PendingModal isApproving={isApproving} />);
 
       if (isApproving) {
-        if (!approveAmount) return;
+        if (!approveAmount || !approveRef.current) return;
 
         try {
           const [, tx] = await bondingCurve.bNomIncreaseBondAllowance(
@@ -86,7 +87,7 @@ export default function ExchangeQuote({ strength }) {
             gasPrice
           );
           handleModal(<TransactionCompletedModal isApproving tx={tx} />);
-        } catch (e) {
+        } catch (e: any) {
           // eslint-disable-next-line no-console
           console.error(e);
           handleModal(<TransactionFailedModal error={`${e.code}\n${e.message.slice(0, 80)}...`} />);
@@ -128,10 +129,10 @@ export default function ExchangeQuote({ strength }) {
             default:
               break;
           }
-        } catch (e) {
+        } catch (e: any) {
           let error;
-          if (NOTIFICATION_MESSAGES.error[e.message]) {
-            error = NOTIFICATION_MESSAGES.error[e.message];
+          if (Object.keys(NOTIFICATION_MESSAGES).includes(e.message)) {
+            error = (NOTIFICATION_MESSAGES.error as any)[e.message];
           } else {
             error = `${e.code}\n${e.message.slice(0, 80)}...`;
           }
@@ -145,7 +146,7 @@ export default function ExchangeQuote({ strength }) {
   const onConfirmApprove = () => {
     try {
       handleModal(<ConfirmTransactionModal isApproving submitTrans={submitTrans} />);
-    } catch (e) {
+    } catch (e: any) {
       handleModal(<TransactionFailedModal error={`${e.code}\n${e.message.slice(0, 80)}...`} />);
     }
   };
@@ -179,42 +180,44 @@ export default function ExchangeQuote({ strength }) {
   };
 
   const onMax = async () => {
-    let strUpdate = new Map();
-    strUpdate.set('bidDenom', strength);
-    const bidMaxValue = strength === 'strong' ? strongBalance : weakBalance;
+    const strUpdate: Partial<ExchStringState> = {};
+    strUpdate.bidDenom = strength;
 
-    strUpdate.set('input', format18(bidMaxValue).toFixed());
+    const bidMaxValue = strength === 'strong' ? strongBalance : weakBalance;
+    strUpdate.input = format18(bidMaxValue).toFixed();
 
     let askAmountUpdate;
 
     try {
       // console.log('calling here:', askAmount, bidMaxValue, strength);
       askAmountUpdate = await getAskAmount(askAmount, bidMaxValue, strength);
-    } catch (err) {
+    } catch (err: any) {
       if (err) {
         handleModal(<RequestFailedModal error={err.error.message} />);
       }
     }
 
-    let objUpdate = new Map();
+    const objUpdate: Partial<ExchObjState> = {};
     if (bidMaxValue.gt(NOMallowance)) {
       const approvalAmount = bidMaxValue.minus(NOMallowance);
 
-      objUpdate = objUpdate.set('approveAmount', approvalAmount);
+      objUpdate.approveAmount = approvalAmount;
 
-      strUpdate = strUpdate.set('approve', format18(approvalAmount).toFixed());
+      strUpdate.approve = format18(approvalAmount).toFixed();
     }
 
-    objUpdate = objUpdate.set('askAmount', askAmountUpdate);
+    objUpdate.askAmount = askAmountUpdate;
 
-    objUpdate = objUpdate.set('bidAmount', bidMaxValue);
+    objUpdate.bidAmount = bidMaxValue;
 
     objDispatch({
       type: 'update',
       value: objUpdate,
     });
 
-    strUpdate.set('output', format18(new BigNumber(askAmountUpdate.toString())).toFixed(8));
+    if (askAmountUpdate) {
+      strUpdate.output = format18(new BigNumber(askAmountUpdate.toString())).toFixed(8);
+    }
 
     strDispatch({
       type: 'update',
@@ -230,30 +233,21 @@ export default function ExchangeQuote({ strength }) {
           return;
         }
 
-        let askAmountUpdate;
-
         try {
           const bidAmountUpdate = parse18(new BigNumber(parseFloat(evt.target.value).toString()));
 
-          askAmountUpdate = await getAskAmount(askAmount, bidAmountUpdate, textStrength);
-
-          let objUpdate = new Map();
-          let strUpdate = new Map();
-
-          objUpdate = objUpdate.set('askAmount', new BigNumber(askAmountUpdate.toString()));
-          strUpdate = strUpdate.set(
-            'output',
-            format18(new BigNumber(askAmountUpdate.toString())).toFixed(8)
-          );
+          const askAmountUpdate = (
+            await await getAskAmount(askAmount, bidAmountUpdate, textStrength)
+          ).toString();
 
           objDispatch({
-            type: 'update',
-            value: objUpdate,
+            type: 'askAmount',
+            value: new BigNumber(askAmountUpdate),
           });
 
           strDispatch({
-            type: 'update',
-            value: strUpdate,
+            type: 'output',
+            value: format18(new BigNumber(askAmountUpdate)).toFixed(8),
           });
         } catch (err) {
           // eslint-disable-next-line no-console
@@ -267,32 +261,23 @@ export default function ExchangeQuote({ strength }) {
       );
       switch (true) {
         case evt.target.value === '' || evt.target.value === '.': {
-          let objUpdate = new Map();
-
-          objUpdate = objUpdate.set('askAmount', new BigNumber(0));
-
-          objUpdate = objUpdate.set('bidAmount', new BigNumber(0));
-
-          objUpdate = objUpdate.set('approveAmount', new BigNumber(0));
-
           objDispatch({
             type: 'update',
-            value: objUpdate,
+            value: {
+              askAmount: new BigNumber(0),
+              bidAmount: new BigNumber(0),
+              approveAmount: new BigNumber(0),
+            },
           });
-
-          let strUpdate = new Map();
-
-          strUpdate = strUpdate.set('bidDenom', strength);
-
-          strUpdate = strUpdate.set('input', evt.target.value.toString());
-
-          strUpdate = strUpdate.set('output', '');
-
-          strUpdate = strUpdate.set('approve', '');
 
           strDispatch({
             type: 'update',
-            value: strUpdate,
+            value: {
+              bidDenom: strength,
+              input: evt.target.value.toString(),
+              output: '',
+              approve: '',
+            },
           });
 
           break;
@@ -301,24 +286,24 @@ export default function ExchangeQuote({ strength }) {
         case floatRegExp.test(evt.target.value.toString()): {
           const bidAmountUpdate = parse18(new BigNumber(parseFloat(evt.target.value).toString()));
 
-          let strUpdate = new Map();
-          let objUpdate = new Map();
+          const strUpdate: Partial<ExchStringState> = {};
+          const objUpdate: Partial<ExchObjState> = {};
 
           if (bidDenom !== strength) {
-            strUpdate = strUpdate.set('bidDenom', strength);
+            strUpdate.bidDenom = strength;
           }
 
-          objUpdate = objUpdate.set('bidAmount', bidAmountUpdate);
-          strUpdate = strUpdate.set('input', evt.target.value.toString());
+          objUpdate.bidAmount = bidAmountUpdate;
+          strUpdate.input = evt.target.value.toString();
 
-          debounced.call();
+          debounced.call(null);
 
           if (bidAmountUpdate.gt(NOMallowance)) {
             const approvalAmount = bidAmountUpdate.minus(NOMallowance);
 
-            objUpdate = objUpdate.set('approveAmount', approvalAmount);
+            objUpdate.approveAmount = approvalAmount;
 
-            strUpdate = strUpdate.set('approve', format18(approvalAmount).toFixed());
+            strUpdate.approve = format18(approvalAmount).toFixed();
           }
 
           objDispatch({

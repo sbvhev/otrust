@@ -1,15 +1,33 @@
 import React, { createContext, useContext, useReducer, useState } from 'react';
 import { BigNumber } from 'bignumber.js';
 
-import { exchStringReducer, exchObjReducer } from 'context/exchange/ExchangeReducer';
+import {
+  exchStringReducer,
+  exchObjReducer,
+  ExchStringState,
+  ExchStringAction,
+  ExchObjState,
+  ExchObjAction,
+} from 'context/exchange/ExchangeReducer';
 
-export const ExchangeContext = createContext();
+type ExchangeContextType = ExchStringState & ExchObjState;
+export const ExchangeContext = createContext<ExchangeContextType>(
+  undefined as unknown as ExchangeContextType
+);
 export const useExchange = () => useContext(ExchangeContext);
 
-export const UpdateExchangeContext = createContext();
+interface UpdateExchangeContextType {
+  objDispatch: React.Dispatch<ExchObjAction>;
+  strDispatch: React.Dispatch<ExchStringAction>;
+  setInputPending: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+export const UpdateExchangeContext = createContext<UpdateExchangeContextType>(
+  undefined as unknown as UpdateExchangeContextType
+);
 export const useUpdateExchange = () => useContext(UpdateExchangeContext);
 
-function ExchangeProvider({ children }) {
+function ExchangeProvider({ children }: { children: React.ReactNode }) {
   const [inputPending, setInputPending] = useState(false);
 
   const [objState, objDispatch] = useReducer(exchObjReducer, {

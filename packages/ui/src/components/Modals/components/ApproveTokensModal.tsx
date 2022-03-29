@@ -67,9 +67,13 @@ const ApproveTokensWrapper = styled.div`
   }
 `;
 
-export default function ApproveTokensModal({ onConfirmApprove }) {
+export default function ApproveTokensModal({
+  onConfirmApprove,
+}: {
+  onConfirmApprove?: React.MouseEventHandler<HTMLButtonElement>;
+}) {
   const [count, setCount] = useState(60);
-  const [delay, setDelay] = useState(1000);
+  const [delay, setDelay] = useState<number | null>(1000);
   const { handleModal } = useModal();
   const { approve, bidAmount, input } = useExchange();
   const { objDispatch, strDispatch } = useUpdateExchange();
@@ -88,7 +92,7 @@ export default function ApproveTokensModal({ onConfirmApprove }) {
 
   useInterval(increaseCount, delay);
 
-  const onTextChange = async event => {
+  const onTextChange: React.ChangeEventHandler<HTMLInputElement> = async event => {
     event.preventDefault();
 
     // console.log('Approve Amount:-approve ', approve);
@@ -100,20 +104,14 @@ export default function ApproveTokensModal({ onConfirmApprove }) {
 
       const approvalAmount = parse18(new BigNumber(parseFloat(event.target.value).toString()));
 
-      let objUpdate = new Map();
-      objUpdate = objUpdate.set('approveAmount', approvalAmount);
-
       objDispatch({
-        type: 'update',
-        value: objUpdate,
+        type: 'approveAmount',
+        value: approvalAmount,
       });
 
-      let strUpdate = new Map();
-      strUpdate = strUpdate.set('approve', format18(approvalAmount).toFixed());
-
       strDispatch({
-        type: 'update',
-        value: strUpdate,
+        type: 'approve',
+        value: format18(approvalAmount).toFixed(),
       });
     } else {
       // console.log('Text Change: ', 'regex failed');
@@ -124,24 +122,18 @@ export default function ApproveTokensModal({ onConfirmApprove }) {
   const onMax = () => {
     const approvalAmount = weakBalance.minus(NOMallowance);
 
-    let objUpdate = new Map();
-    objUpdate = objUpdate.set('approveAmount', approvalAmount);
-
     objDispatch({
-      type: 'update',
-      value: objUpdate,
+      type: 'approveAmount',
+      value: approvalAmount,
     });
 
-    let strUpdate = new Map();
-    strUpdate = strUpdate.set('approve', format18(approvalAmount).toString());
-
     strDispatch({
-      type: 'update',
-      value: strUpdate,
+      type: 'approve',
+      value: format18(approvalAmount).toString(),
     });
   };
 
-  const inputDisplay = parseFloat(input || 0).toFixed(6);
+  const inputDisplay = parseFloat(input || '0').toFixed(6);
   const initApproveAmountDisplay = format18(initialApproveAmount || 0).toFixed(6);
 
   let infoMessage;

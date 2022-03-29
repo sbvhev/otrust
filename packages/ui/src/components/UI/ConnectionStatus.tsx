@@ -1,6 +1,8 @@
 import styled from 'styled-components';
 
-export const ConnectionStatus = styled.div`
+export const ConnectionStatus = styled.div<{
+  active?: boolean;
+}>`
   display: flex;
   align-items: center;
   gap: 8px;

@@ -3,6 +3,7 @@ import ReactModal from 'react-modal';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft } from '@fortawesome/free-solid-svg-icons';
+import type { IconProp } from '@fortawesome/fontawesome-svg-core';
 import { useOnomyEth } from '@onomy/react-eth';
 
 import LoadingSpinner from 'components/UI/LoadingSpinner';
@@ -21,6 +22,7 @@ import * as Modal from '../styles';
 import oneWayBridgeImg from '../assets/one-way-bridge.svg';
 import whyBridgeImg from '../assets/why-bridge.svg';
 import useLockBodyScroll from '../../../hooks/useLockBodyScroll';
+import { BridgeSwapModalProps } from './BridgeSwapModal';
 
 const BridgeSwapModalWrapper = styled.div`
   @media screen and (min-width: 701px) {
@@ -60,7 +62,9 @@ const FormWrapper = styled.div`
   padding: 20px;
 `;
 
-const HeaderInfoItem = styled.div`
+const HeaderInfoItem = styled.div<{
+  align?: string;
+}>`
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -149,7 +153,9 @@ const Options = styled.div`
   margin: 12px 0 16px;
 `;
 
-const OptionBtn = styled.button`
+const OptionBtn = styled.button<{
+  active?: boolean;
+}>`
   padding: 12px 16px;
   background-color: ${props =>
     props.active ? props.theme.colors.bgHighlightBorder : 'transparent'};
@@ -180,7 +186,7 @@ const modalOverride = {
   },
 };
 
-export default function BridgeSwapMobile({ ...props }) {
+export default function BridgeSwapMobile({ ...props }: BridgeSwapModalProps) {
   const { web3Context } = useOnomyEth();
   const { active } = web3Context;
   const { values, flags, handlers } = { ...props };
@@ -221,7 +227,7 @@ export default function BridgeSwapMobile({ ...props }) {
         <BridgeSwapModal>
           <ModalInfo>
             <BridgeTransactionComplete
-              closeModalHandler={handlers.closeModal}
+              // closeModalHandler={handlers.closeModal}
               amountValue={values.amountValue}
             />
           </ModalInfo>
@@ -236,7 +242,7 @@ export default function BridgeSwapMobile({ ...props }) {
               }}
               data-testid="bridge-mobile-info-modal-button"
             >
-              <FontAwesomeIcon icon={faChevronLeft} />
+              <FontAwesomeIcon icon={faChevronLeft as IconProp} />
             </ModalBtn>
             <h6>What Is Onomy Bridge?</h6>
           </ModalHeader>
@@ -303,7 +309,7 @@ export default function BridgeSwapMobile({ ...props }) {
               onClick={() => handlers.closeModal()}
               data-testid="bridge-mobile-header-button"
             >
-              <FontAwesomeIcon icon={faChevronLeft} />
+              <FontAwesomeIcon icon={faChevronLeft as IconProp} />
             </ModalBtn>
             <h6>Onomy Bridge</h6>
           </ModalHeader>

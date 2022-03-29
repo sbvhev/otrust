@@ -39,7 +39,7 @@ const Message = styled.div`
   }
 `;
 
-export default function RequestFailedModal({ error }) {
+export default function RequestFailedModal({ error }: { error: any }) {
   const { handleModal } = useModal();
 
   return (

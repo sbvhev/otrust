@@ -56,7 +56,9 @@ export const ExchangeItem = styled.div`
   }
 `;
 
-export const Sending = styled.div`
+export const Sending = styled.div<{
+  error?: string;
+}>`
   display: flex;
   align-items: center;
   justify-content: space-between;

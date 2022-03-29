@@ -12,7 +12,7 @@ export const ExplorerButton = styled(Modal.SecondaryButton)`
   margin-top: 32px;
 `;
 
-export default function BridgeTransactionComplete({ amountValue }) {
+export default function BridgeTransactionComplete({ amountValue }: { amountValue?: string }) {
   const { bridgeProgress } = useOnomy();
 
   if (bridgeProgress === null) {

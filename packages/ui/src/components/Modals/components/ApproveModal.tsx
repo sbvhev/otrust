@@ -33,9 +33,13 @@ const Caption = styled(Modal.Caption)`
 //   }
 // `;
 
-export default function ApproveModal({ onApprove }) {
+export default function ApproveModal({
+  onApprove,
+}: {
+  onApprove?: React.MouseEventHandler<HTMLButtonElement>;
+}) {
   const [count, setCount] = useState(60);
-  const [delay, setDelay] = useState(1000);
+  const [delay, setDelay] = useState<number | null>(1000);
   const { handleModal } = useModal();
 
   const increaseCount = () => {

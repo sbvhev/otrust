@@ -39,7 +39,7 @@ export default function BridgeSwapMain() {
   const navigate = useNavigate();
   const [amountValue, setAmountValue] = useState('');
   const [errors, setErrors] = useState(initialErrorsState);
-  const [formattedWeakBalance, setFormattedWeakBalance] = useState(0);
+  const [formattedWeakBalance, setFormattedWeakBalance] = useState(new BigNumber(0));
   const [isDisabled, setIsDisabled] = useState(false);
   const [isTransactionPending, setIsTransactionPending] = useState(false);
   const [allowanceAmountGravity, setAllowanceAmountGravity] = useState(new BigNumber(0));
@@ -59,6 +59,9 @@ export default function BridgeSwapMain() {
   }, [weakBalance]);
 
   const updateAllowanceAmount = useCallback(async () => {
+    if (!account) {
+      throw new Error();
+    }
     const allowanceGravity = await bondingCurve.bNomBridgeAllowance(account);
     setAllowanceAmountGravity(allowanceGravity);
     return allowanceGravity;
@@ -70,18 +73,18 @@ export default function BridgeSwapMain() {
     }
   }, [bondingCurve, account, allowanceAmountGravity, updateAllowanceAmount]);
 
-  const walletChangeHandler = event => {
+  const walletChangeHandler: React.ChangeEventHandler<HTMLInputElement> = event => {
     setOnomyWalletValue(event.target.value);
   };
 
-  const amountChangeHandler = event => {
+  const amountChangeHandler: React.ChangeEventHandler<HTMLInputElement> = event => {
     const { value } = event.target;
     const floatRegExp = new RegExp(
       /(^(?=.+)(?:[1-9]\d*|0)?(?:\.\d{1,18})?$)|(^\d+?\.$)|(^\+?(?!0\d+)$|(^$)|(^\.$))/
     );
     if (floatRegExp.test(value)) {
       setAmountValue(value);
-      const bigAmountShifted18 = BigNumber(value).shiftedBy(18);
+      const bigAmountShifted18 = new BigNumber(value).shiftedBy(18);
       if (bigAmountShifted18.gt(weakBalance)) {
         setErrors(prevState => {
           return { ...prevState, amountError: NOTIFICATION_MESSAGES.error.insufficientFunds };
@@ -96,7 +99,7 @@ export default function BridgeSwapMain() {
     }
   };
 
-  const maxBtnClickHandler = event => {
+  const maxBtnClickHandler: React.MouseEventHandler<HTMLButtonElement> = event => {
     event.preventDefault();
     if (weakBalance.toNumber()) {
       setAmountValue(formattedWeakBalance.toString(10));
@@ -121,7 +124,7 @@ export default function BridgeSwapMain() {
     }
   };
 
-  const submitTransClickHandler = useCallback(
+  const submitTransClickHandler: React.MouseEventHandler<HTMLButtonElement> = useCallback(
     async event => {
       event.preventDefault();
       setErrors(initialErrorsState);
@@ -159,7 +162,7 @@ export default function BridgeSwapMain() {
           setShowTransactionCompleted(true);
           setShowLoader(false);
           setIsTransactionPending(false);
-        } catch (error) {
+        } catch (error: any) {
           if (error.code === 4001) {
             setErrors(prevState => {
               return {

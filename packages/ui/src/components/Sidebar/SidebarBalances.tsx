@@ -17,7 +17,19 @@ import {
 import { SidebarBridgedBalance } from './SidebarBridgedBalance';
 import { REACT_APP_SHOW_BRIDGED_NOM } from 'constants/env';
 
-export default function SidebarBalances({ strong, weak, strongBalance, weakBalance, allowance }) {
+export default function SidebarBalances({
+  strong,
+  weak,
+  strongBalance,
+  weakBalance,
+  allowance,
+}: {
+  strong: string;
+  weak: string;
+  strongBalance: string;
+  weakBalance: string;
+  allowance: string;
+}) {
   return (
     <>
       <Balances>

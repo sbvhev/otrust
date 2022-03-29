@@ -39,7 +39,7 @@ const Message = styled.div`
   }
 `;
 
-export default function TransactionFailedModal({ error: errorProp }) {
+export default function TransactionFailedModal({ error: errorProp }: { error: any }) {
   const { handleModal } = useModal();
   let error = errorProp;
 

@@ -58,9 +58,9 @@ export const BridgeSectionWrapper = styled.div`
   min-height: 400px;
   background-color: ${props => props.theme.colors.bgNormal};
 
-   main {
+  main {
     padding: 0;
-  };
+  }
 
   footer {
     display: flex;
@@ -73,7 +73,6 @@ export const BridgeSectionWrapper = styled.div`
 `;
 
 export const BridgeSuccessWrapper = styled(BridgeSectionWrapper)`
-
   footer {
     margin: auto;
   }
@@ -110,23 +109,23 @@ export const CloseIcon = styled.button`
   svg {
     fill: ${props => props.theme.colors.textThirdly};
   }
-  
+
   &:hover {
     svg {
       fill: ${props => props.theme.colors.textSecondary};
     }
   }
-  
+
   &:active {
     svg {
       fill: ${props => props.theme.colors.textThirdly_darken};
     }
   }
-  
+
   &:disabled {
     cursor: not-allowed;
-    
-    svg { 
+
+    svg {
       fill: ${props => props.theme.colors.textThirdly};
       opacity: 0.5;
     }
@@ -137,11 +136,13 @@ export const PrimaryButton = styled.button`
   width: 170px;
   height: 50px;
 
-  background-color: ${props => (props.disabled ? props.theme.colors.bgHighlight : props.theme.colors.textPrimary)};
+  background-color: ${props =>
+    props.disabled ? props.theme.colors.bgHighlight : props.theme.colors.textPrimary};
   border: none;
   border-radius: 8px;
 
-  color: ${props => (props.disabled ? props.theme.colors.textThirdly : props.theme.colors.bgDarken)};
+  color: ${props =>
+    props.disabled ? props.theme.colors.textThirdly : props.theme.colors.bgDarken};
   font-weight: 600;
   font-size: 14px;
 
@@ -161,7 +162,8 @@ export const PrimaryButton = styled.button`
   }
 
   &:active {
-    background-color: ${props => (props.disabled ? props.theme.colors.bgHighlight : props.theme.colors.textSecondary)};
+    background-color: ${props =>
+      props.disabled ? props.theme.colors.bgHighlight : props.theme.colors.textSecondary};
   }
 
   &:disabled {
@@ -170,16 +172,22 @@ export const PrimaryButton = styled.button`
 `;
 
 export const SecondaryButton = styled(PrimaryButton)`
-  background-color: ${props => (props.disabled ? props.theme.colors.bgHighlight : props.theme.colors.bgHighlightBorder)};
+  background-color: ${props =>
+    props.disabled ? props.theme.colors.bgHighlight : props.theme.colors.bgHighlightBorder};
 
-  color: ${props => (props.disabled ? props.theme.colors.textThirdly : props.theme.colors.textPrimary)};
+  color: ${props =>
+    props.disabled ? props.theme.colors.textThirdly : props.theme.colors.textPrimary};
 
   &:hover {
-    background-color: ${props => (props.disabled ? props.theme.colors.bgHighlight : props.theme.colors.bgHighlightBorder_lighten)};
+    background-color: ${props =>
+      props.disabled
+        ? props.theme.colors.bgHighlight
+        : props.theme.colors.bgHighlightBorder_lighten};
   }
 
   &:active {
-    background-color: ${props => (props.disabled ? props.theme.colors.bgHighlight : props.theme.colors.textSecondary)};
+    background-color: ${props =>
+      props.disabled ? props.theme.colors.bgHighlight : props.theme.colors.textSecondary};
   }
 `;
 
@@ -210,7 +218,7 @@ export const ExchangeResult = styled.div`
 
   sup {
     margin-left: 8px;
-    
+
     font-size: 12px;
   }
 `;
@@ -299,7 +307,9 @@ export const ModalIconWrapper = styled.div`
   }
 `;
 
-export const DetailsButton = styled.button`
+export const DetailsButton = styled.button<{
+  active?: boolean;
+}>`
   display: flex;
   align-items: center;
   gap: 8px;
@@ -584,7 +594,10 @@ export const Balance = styled.div`
   }
 `;
 
-export const ConnectionStatus = styled.div`
+export const ConnectionStatus = styled.div<{
+  active?: boolean;
+  disconnected?: boolean;
+}>`
   display: flex;
   align-items: center;
   justify-content: center;
@@ -597,7 +610,8 @@ export const ConnectionStatus = styled.div`
   border-radius: 8px;
   background-color: ${props => (props.active ? '#2a3438' : '#30232e')};
 
-  color: ${props => (props.active ? props.theme.colors.highlightGreen : props.theme.colors.highlightRed)};
+  color: ${props =>
+    props.active ? props.theme.colors.highlightGreen : props.theme.colors.highlightRed};
   white-space: nowrap;
 
   @media screen and (max-width: ${responsive.tabletSmall}) {
@@ -625,7 +639,7 @@ export const ConnectionStatus = styled.div`
     left: 50%;
 
     background-color: ${props =>
-    props.active ? props.theme.colors.highlightGreen : props.theme.colors.highlightRed};
+      props.active ? props.theme.colors.highlightGreen : props.theme.colors.highlightRed};
 
     @media screen and (max-width: ${responsive.tabletSmall}) {
       display: none;
@@ -637,7 +651,7 @@ export const ConnectionStatus = styled.div`
     bottom: -30px;
 
     background-color: ${props =>
-    props.active ? props.theme.colors.highlightGreen : props.theme.colors.highlightRed};
+      props.active ? props.theme.colors.highlightGreen : props.theme.colors.highlightRed};
   }
 `;
 
@@ -681,16 +695,20 @@ export const SuccessSection = styled(ErrorSection)`
   background-color: #2a3438;
 `;
 
-export const CosmosInputSection = styled.div`
+export const CosmosInputSection = styled.div<{
+  error?: string;
+}>`
   width: 100%;
-  border: 1px solid ${props => (props.error ? props.theme.colors.highlightRed : props.theme.colors.bgHighlightBorder)};
+  border: 1px solid
+    ${props =>
+      props.error ? props.theme.colors.highlightRed : props.theme.colors.bgHighlightBorder};
   border-radius: 8px;
   padding: 16px 29px 16px 20px;
   opacity: 1;
 
   @media screen and (max-width: ${responsive.smartphoneLarge}) {
-      margin-top: 16px;
-    }
+    margin-top: 16px;
+  }
 `;
 
 export const Desc = styled.p`
@@ -722,16 +740,19 @@ export const FullWidthButton = styled(PrimaryButton)`
   width: 100%;
   height: 52px;
 
-  background-color: ${props => (props.disabled ? props.theme.colors.bgHighlight : props.theme.colors.textPrimary)};
+  background-color: ${props =>
+    props.disabled ? props.theme.colors.bgHighlight : props.theme.colors.textPrimary};
 
-  color: ${props => (props.disabled ? props.theme.colors.textThirdly : props.theme.colors.bgDarken)};
+  color: ${props =>
+    props.disabled ? props.theme.colors.textThirdly : props.theme.colors.bgDarken};
 
   &:hover {
     background-color: ${props => (props.disabled ? props.theme.colors.bgHighlight : '#fff')};
   }
 
   &:active {
-    background-color: ${props => (props.disabled ? props.theme.colors.bgHighlight : props.theme.colors.textSecondary)};
+    background-color: ${props =>
+      props.disabled ? props.theme.colors.bgHighlight : props.theme.colors.textSecondary};
   }
 `;
 

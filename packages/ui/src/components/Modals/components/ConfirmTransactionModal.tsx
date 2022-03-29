@@ -64,7 +64,9 @@ const WalletIcon = styled.div`
   }
 `;
 
-const OptionBtn = styled.button`
+const OptionBtn = styled.button<{
+  active?: boolean;
+}>`
   padding: 12px 16px;
   background-color: ${props =>
     props.active ? props.theme.colors.bgHighlightBorder : 'transparent'};
@@ -119,8 +121,14 @@ const limitOptions = [
   },
 ];
 
-export default function ConfirmTransactionModal({ isApproving, submitTrans }) {
-  const [slippage, setSlippage] = useState(0);
+export default function ConfirmTransactionModal({
+  isApproving,
+  submitTrans,
+}: {
+  isApproving?: boolean;
+  submitTrans: (isApproving: boolean, slippage: BigNumber, gasPrice: BigNumber) => Promise<void>;
+}) {
+  const [activeSlippageId, setActiveSlippageId] = useState(0);
   const [showSlippageDetails, setShowSlippageDetails] = useState(false);
   const { handleModal } = useModal();
   const { web3Context } = useOnomyEth();
@@ -129,7 +137,7 @@ export default function ConfirmTransactionModal({ isApproving, submitTrans }) {
   const { askAmount, bidAmount, bidDenom, strong, weak, approve } = useExchange();
 
   const [count, setCount] = useState(60);
-  const [delay, setDelay] = useState(1000);
+  const [delay, setDelay] = useState<number | null>(1000);
 
   const increaseCount = () => {
     if (count === 0) {
@@ -144,7 +152,7 @@ export default function ConfirmTransactionModal({ isApproving, submitTrans }) {
 
   useInterval(increaseCount, delay);
 
-  const approveDisplay = parseFloat(approve || 0).toFixed(6);
+  const approveDisplay = parseFloat(approve || '0').toFixed(6);
 
   return (
     <Modal.Wrapper>
@@ -250,9 +258,9 @@ export default function ConfirmTransactionModal({ isApproving, submitTrans }) {
             <Options>
               {limitOptions.map(slippageOption => (
                 <OptionBtn
-                  active={slippage === slippageOption.id}
+                  active={activeSlippageId === slippageOption.id}
                   key={slippageOption.id}
-                  onClick={() => setSlippage(slippageOption.id)}
+                  onClick={() => setActiveSlippageId(slippageOption.id)}
                 >
                   {slippageOption.text}
                 </OptionBtn>
@@ -274,7 +282,9 @@ export default function ConfirmTransactionModal({ isApproving, submitTrans }) {
             Cancel
           </Modal.SecondaryButton>
           <Modal.PrimaryButton
-            onClick={() => submitTrans(isApproving, slippage, gasPrice)}
+            onClick={() =>
+              submitTrans(!!isApproving, limitOptions[activeSlippageId].value, gasPrice)
+            }
             data-testid="confirm-modal-primary-button"
           >
             Confirm ({count})

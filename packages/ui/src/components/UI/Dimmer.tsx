@@ -1,6 +1,8 @@
 import styled from 'styled-components';
 
-export const Dimmer = styled.div`
+export const Dimmer = styled.div<{
+  disabled?: boolean;
+}>`
   width: 100%;
   height: 100%;
 

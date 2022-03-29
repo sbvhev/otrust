@@ -14,14 +14,14 @@ import ModalProvider from 'context/modal/ModalContext';
 import MainHeader from 'components/MainHeader';
 import SelectValidator from 'components/Modals/BridgeStaking/SelectValidator';
 import ValidatorNode from 'components/Modals/BridgeStaking/ValidatorNode';
-import './assets/font-faces.css';
 import BridgeSwapMain from 'components/Modals/components/BridgeSwapMain';
+import './assets/font-faces.css';
 
 function App() {
   return (
     <CookiesProvider>
       <ThemeProvider theme={darkNew}>
-        <ChainProvider theme={darkNew}>
+        <ChainProvider>
           <AutoLogin Landing={Landing}>
             <ExchangeProvider>
               <ModalProvider>

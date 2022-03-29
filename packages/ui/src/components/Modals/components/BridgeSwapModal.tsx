@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { BigNumber } from 'bignumber.js';
 import styled from 'styled-components';
 import { useMediaQuery } from 'react-responsive';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft } from '@fortawesome/free-solid-svg-icons';
+import type { IconProp } from '@fortawesome/fontawesome-svg-core';
 import { useAnomSupply, useOnomy } from '@onomy/react-client';
 import { useOnomyEth } from '@onomy/react-eth';
 
@@ -60,7 +62,9 @@ const Options = styled.div`
   margin: 12px 0 16px;
 `;
 
-const OptionBtn = styled.button`
+const OptionBtn = styled.button<{
+  active?: boolean;
+}>`
   padding: 12px 16px;
   background-color: ${props =>
     props.active ? props.theme.colors.bgHighlightBorder : 'transparent'};
@@ -78,7 +82,9 @@ const OptionBtn = styled.button`
   }
 `;
 
-const ModalHeader = styled.header`
+const ModalHeader = styled.header<{
+  collapsedInfoBreakpoint?: boolean;
+}>`
   display: flex;
 
   h2 {
@@ -106,7 +112,11 @@ const KeplrLink = styled.a`
   color: ${props => props.theme.colors.textThirdly};
 `;
 
-function BridgeSwapModalInfo({ closeModal }) {
+function BridgeSwapModalInfo({
+  closeModal,
+}: {
+  closeModal?: React.MouseEventHandler<HTMLButtonElement>;
+}) {
   const collapsedInfoBreakpoint = useMediaQuery({ maxWidth: responsive.laptopSmall });
   const [bridgedSupply] = useAnomSupply();
   return (
@@ -114,7 +124,7 @@ function BridgeSwapModalInfo({ closeModal }) {
       <ModalHeader collapsedInfoBreakpoint={collapsedInfoBreakpoint}>
         {collapsedInfoBreakpoint && (
           <ModalBtn onClick={closeModal}>
-            <FontAwesomeIcon icon={faChevronLeft} />
+            <FontAwesomeIcon icon={faChevronLeft as IconProp} />
           </ModalBtn>
         )}
       </ModalHeader>
@@ -159,7 +169,46 @@ function BridgeSwapModalInfo({ closeModal }) {
   );
 }
 
-export default function BridgeSwapModal({ ...props }) {
+export interface BridgeSwapModalProps {
+  values: {
+    onomyWalletValue: string;
+    amountValue: string;
+    formattedWeakBalance: BigNumber;
+    allowanceAmountGravity: BigNumber;
+    weakBalance: BigNumber;
+    errors: {
+      amountError: string;
+      onomyWalletError: string;
+      transactionError: string;
+    };
+    gasPrice: BigNumber;
+    gasPriceChoice: number;
+    gasOptions: {
+      id: number;
+      text: string;
+      gas: BigNumber;
+    }[];
+  };
+  flags: {
+    isDisabled: boolean;
+    isTransactionPending: boolean;
+    showBridgeExchangeModal: boolean;
+    showApproveModal: boolean;
+    showTransactionCompleted: boolean;
+    showLoader: boolean;
+  };
+  handlers: {
+    walletChangeHandler: React.ChangeEventHandler<HTMLInputElement>;
+    amountChangeHandler: React.ChangeEventHandler<HTMLInputElement>;
+    maxBtnClickHandler: React.MouseEventHandler<HTMLButtonElement>;
+    submitTransClickHandler: React.MouseEventHandler<HTMLButtonElement>;
+    onCancelClickHandler: () => void;
+    closeModal: () => void;
+    setGasPriceChoice: React.Dispatch<React.SetStateAction<number>>;
+  };
+}
+
+export default function BridgeSwapModal({ ...props }: BridgeSwapModalProps) {
   const { web3Context } = useOnomyEth();
   const { active, account } = web3Context;
   const { values, flags, handlers } = { ...props };

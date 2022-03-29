@@ -141,7 +141,13 @@ const PrimaryIcon = styled.a`
   }
 `;
 
-export default function SidebarHeader({ account, onLogout }) {
+export default function SidebarHeader({
+  account,
+  onLogout,
+}: {
+  account: string | null | undefined;
+  onLogout: () => void;
+}) {
   return (
     <Header>
       <AccountNumber>

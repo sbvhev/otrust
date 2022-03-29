@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { BigNumber } from 'bignumber.js';
+import { ContractTransaction } from '@onomy/react-eth';
 
 import { useExchange, useUpdateExchange } from 'context/exchange/ExchangeContext';
 import { Caret, Close, Success } from '../Icons';
@@ -13,9 +14,15 @@ export const ExplorerButton = styled(Modal.SecondaryButton)`
   margin-top: 32px;
 `;
 
-const networks = { 0: 'rinkeby.', 1: '', 4: 'rinkeby.' };
+const networks = ['rinkeby.', '', '', '', 'rinkeby.'];
 
-export default function TransactionCompletedModal({ isApproving, tx }) {
+export default function TransactionCompletedModal({
+  isApproving,
+  tx,
+}: {
+  isApproving?: boolean;
+  tx: ContractTransaction;
+}) {
   const [detailsActive, setDetailsActive] = useState(false);
 
   const { objDispatch, strDispatch } = useUpdateExchange();
@@ -24,7 +31,7 @@ export default function TransactionCompletedModal({ isApproving, tx }) {
 
   const { handleModal } = useModal();
 
-  const shortten = addr => {
+  const shortten = (addr: string) => {
     return `${addr.slice(0, 15)}...${addr.slice(addr.length - 3)}`;
   };
 
@@ -33,30 +40,22 @@ export default function TransactionCompletedModal({ isApproving, tx }) {
   };
 
   const closeModal = () => {
-    let objUpdate = new Map();
-
-    objUpdate = objUpdate.set('askAmount', new BigNumber(0));
-
-    objUpdate = objUpdate.set('bidAmount', new BigNumber(0));
-
-    objUpdate = objUpdate.set('approveAmount', new BigNumber(0));
-
     objDispatch({
       type: 'update',
-      value: objUpdate,
+      value: {
+        askAmount: new BigNumber(0),
+        bidAmount: new BigNumber(0),
+        approveAmount: new BigNumber(0),
+      },
     });
-
-    let strUpdate = new Map();
-
-    strUpdate = strUpdate.set('input', '');
-
-    strUpdate = strUpdate.set('output', '');
-
-    strUpdate = strUpdate.set('approve', '');
 
     strDispatch({
       type: 'update',
-      value: strUpdate,
+      value: {
+        input: '',
+        output: '',
+        approve: '',
+      },
     });
 
     handleModal();
@@ -120,6 +119,7 @@ export default function TransactionCompletedModal({ isApproving, tx }) {
       <footer>
         <Modal.FooterControls>
           <Modal.DetailsButton
+            // @ts-ignore
             active={detailsActive}
             onClick={() => setDetailsActive(!detailsActive)}
             data-testid="completed-modal-details-button"
@@ -139,9 +139,11 @@ export default function TransactionCompletedModal({ isApproving, tx }) {
             <Modal.FooterDetailsRow>
               <span>From</span> <strong>{shortten(tx.from)}</strong>
             </Modal.FooterDetailsRow>
-            <Modal.FooterDetailsRow>
-              <span>To</span> <strong>{shortten(tx.to)}</strong>
-            </Modal.FooterDetailsRow>
+            {!!tx.to && (
+              <Modal.FooterDetailsRow>
+                <span>To</span> <strong>{shortten(tx.to)}</strong>
+              </Modal.FooterDetailsRow>
+            )}
             <Modal.FooterDetailsRow>
               <span>TxID</span> <strong>{shortten(tx.hash)}</strong>
             </Modal.FooterDetailsRow>

@@ -52,7 +52,7 @@ const WalletIcon = styled.div`
 //   }
 // `;
 
-export default function PendingModal({ isApproving }) {
+export default function PendingModal({ isApproving }: { isApproving?: boolean }) {
   const { web3Context } = useOnomyEth();
   const { account } = web3Context;
   const { approve, bidDenom, strong, weak, bidAmount, askAmount } = useExchange();
