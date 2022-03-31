@@ -126,6 +126,7 @@ export default function ConfirmTransactionModal({
   submitTrans,
 }: {
   isApproving?: boolean;
+  // eslint-disable-next-line
   submitTrans: (isApproving: boolean, slippage: BigNumber, gasPrice: BigNumber) => Promise<void>;
 }) {
   const [activeSlippageId, setActiveSlippageId] = useState(0);

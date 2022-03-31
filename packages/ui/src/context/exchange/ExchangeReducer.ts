@@ -74,6 +74,7 @@ export function exchStringReducer(
         update = reducerCallback(state[action.type], action.type, action.value, update);
         break;
       case 'update':
+        // eslint-disable-next-line
         for (const [key, value] of Object.entries(action.value)) {
           try {
             switch (key) {
@@ -166,6 +167,7 @@ export function exchObjReducer(state: ExchObjState, action: ExchObjAction): Exch
         update = reducerCallback(state[action.type], action.type, action.value, update);
         break;
       case 'update':
+        // eslint-disable-next-line
         for (const [key, value] of Object.entries(action.value)) {
           try {
             if (state[key as keyof ExchObjState]) {
